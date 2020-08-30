@@ -9,7 +9,7 @@ import 'semantic-ui-css/semantic.min.css'
 
 
 ReactDOM.render(
-  <React.StrictMode>
+  <>
     <Router>
       <Switch>
         <Route path="/login" component={Login} />
@@ -17,7 +17,7 @@ ReactDOM.render(
         <Route exact path="/" component={App} />
       </Switch>
     </Router>
-  </React.StrictMode>,
+  </>,
   document.getElementById('root')
 );
 

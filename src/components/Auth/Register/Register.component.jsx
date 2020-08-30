@@ -1,20 +1,85 @@
-import React from 'react'
-import { Grid, Form, Segment } from 'semantic-ui-react';
+import React, { useState } from 'react'
+import { Grid, Form, Segment, Icon, Header, Button, Message } from 'semantic-ui-react';
+
+import './Register.css'
 
 const Register = () => {
 
-  const handleInput = (e) => {
+  let user = {
+    userName: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  }
 
+  let errors = [];
+
+  const [userState, setUserState] = useState(user);
+  const [errorState, setErrorState] = useState(errors);
+
+  const handleInput = (e) => {
+    let target = e.target;
+
+    setUserState((currentState) => {
+      let currentUser = { ...currentState };
+      currentUser[target.name] = target.value;
+      return currentUser;
+    })
+  }
+
+  const checkForm = () => {
+    if (isFormEmpty()) {
+      setErrorState((error) => error.concat({ message: "Please fill in all fields." }));
+      return false;
+    } else if (!checkPassword()) {
+      setErrorState((error) => error.concat({ message: "Given password is not valid." }));
+      return false;
+    }
+    return true;
+  }
+
+  const checkPassword = () => {
+    if (userState.password.length < 8) {
+      return false;
+    } else if (userState.password !== userState.confirmPassword) {
+      return false;
+    }
+    return true
+  }
+
+  const isFormEmpty = () => {
+    return !userState.userName.length ||
+      !userState.password.length ||
+      !userState.email.length ||
+      !userState.confirmPassword.length;
+  }
+
+  const onSubmit = (e) => {
+    setErrorState(() => []);
+
+    if (checkForm()) {
+
+    } else {
+
+    }
+  }
+
+  const formatErrors = () => {
+    return errorState.map((error, index) => <p key={index}>{error.message}</p>)
   }
 
   return (
-    <Grid verticalAlign="middle" textAlign="center">
-      <Grid.Column>
-        <Form>
+    <Grid verticalAlign="middle" textAlign="center" className="grid-form">
+      <Grid.Column style={{ maxWidth: '500px' }}>
+        <Header icon as="h2">
+          <Icon name="slack" />
+          Register
+        </Header>
+        <Form onSubmit={onSubmit}>
           <Segment stacked>
             <Form.Input
               name="userName"
-              value=""
+              value={userState.userName}
               icon="user"
               iconPosition="left"
               onChange={handleInput}
@@ -23,7 +88,7 @@ const Register = () => {
             />
             <Form.Input
               name="email"
-              value=""
+              value={userState.email}
               icon="mail"
               iconPosition="left"
               onChange={handleInput}
@@ -32,7 +97,7 @@ const Register = () => {
             />
             <Form.Input
               name="password"
-              value=""
+              value={userState.password}
               icon="lock"
               iconPosition="left"
               onChange={handleInput}
@@ -41,15 +106,22 @@ const Register = () => {
             />
             <Form.Input
               name="confirmPassword"
-              value=""
-              icon="user"
+              value={userState.confirmPassword}
+              icon="lock"
               iconPosition="left"
               onChange={handleInput}
               type="password"
               placeholder="Confirm Password"
             />
           </Segment>
+
+          <Button>Submit</Button>
         </Form>
+
+        {errorState.length > 0 && <Message error>
+          <h3>Errors</h3>
+          {formatErrors()}
+        </Message>}
       </Grid.Column>
     </Grid>
   )
