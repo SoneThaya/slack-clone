@@ -3,7 +3,7 @@ import { Grid, Form, Segment, Icon, Header, Button, Message } from 'semantic-ui-
 import firebase from '../../../server/firebase'
 import { Link } from 'react-router-dom';
 
-import './Register.css'
+import '../Auth.css'
 
 const Register = () => {
 
