@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Grid, Form, Segment, Icon, Header, Button, Message } from 'semantic-ui-react';
+import firebase from '../../../server/firebase'
 
 import './Register.css'
 
@@ -13,6 +14,8 @@ const Register = () => {
   }
 
   let errors = [];
+
+  let userCollectionRef = firebase.database().ref('users');
 
   const [userState, setUserState] = useState(user);
   const [errorState, setErrorState] = useState(errors);
@@ -32,7 +35,6 @@ const Register = () => {
       setErrorState((error) => error.concat({ message: "Please fill in all fields." }));
       return false;
     } else if (!checkPassword()) {
-      setErrorState((error) => error.concat({ message: "Given password is not valid." }));
       return false;
     }
     return true;
@@ -40,8 +42,10 @@ const Register = () => {
 
   const checkPassword = () => {
     if (userState.password.length < 8) {
+      setErrorState((error) => error.concat({ message: "Password length should be at least 8." }));
       return false;
     } else if (userState.password !== userState.confirmPassword) {
+      setErrorState((error) => error.concat({ message: "Passwords do not match." }));
       return false;
     }
     return true
@@ -58,10 +62,44 @@ const Register = () => {
     setErrorState(() => []);
 
     if (checkForm()) {
-
-    } else {
-
+      firebase.auth()
+        .createUserWithEmailAndPassword(userState.email, userState.password)
+        .then(createdUser => {
+          updateUserDetails(createdUser)
+        })
+        .catch(serverError => {
+          setErrorState((error) => error.concat(serverError));
+        })
     }
+  }
+
+  const updateUserDetails = (createdUser) => {
+    if (createdUser) {
+      createdUser.user
+        .updateProfile({
+          displayName: userState.userName,
+          photoURL: `http://gravatar.com/avatar/${createdUser.user.uid}?=identicon`
+        })
+        .then(() => {
+          console.log(createdUser)
+        })
+        .catch((serverError) => {
+          setErrorState((error) => error.concat(serverError));
+        })
+    }
+  }
+
+  const saveUserInDb = (createdUser) => {
+    userCollectionRef.child(createdUser.user.uid).set({
+      displayName: createdUser.user.displayName,
+      photoURL: createdUser.user.photoURL
+    })
+    .then(() => {
+      console.log('user saved in db')
+    })
+    .catch(serverError => {
+      setErrorState((error) => error.concat(serverError));
+    })
   }
 
   const formatErrors = () => {
