@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Grid, Form, Segment, Icon, Header, Button, Message } from 'semantic-ui-react';
 import firebase from '../../../server/firebase'
+import { Link } from 'react-router-dom';
 
 import './Register.css'
 
@@ -19,6 +20,8 @@ const Register = () => {
 
   const [userState, setUserState] = useState(user);
   const [errorState, setErrorState] = useState(errors);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleInput = (e) => {
     let target = e.target;
@@ -60,14 +63,17 @@ const Register = () => {
 
   const onSubmit = (e) => {
     setErrorState(() => []);
-
+    setIsSuccess(false);
     if (checkForm()) {
+      setIsLoading(true);
       firebase.auth()
         .createUserWithEmailAndPassword(userState.email, userState.password)
         .then(createdUser => {
+          setIsLoading(false);
           updateUserDetails(createdUser)
         })
         .catch(serverError => {
+          setIsLoading(false);
           setErrorState((error) => error.concat(serverError));
         })
     }
@@ -75,13 +81,14 @@ const Register = () => {
 
   const updateUserDetails = (createdUser) => {
     if (createdUser) {
+      setIsLoading(true);
       createdUser.user
         .updateProfile({
           displayName: userState.userName,
           photoURL: `http://gravatar.com/avatar/${createdUser.user.uid}?=identicon`
         })
         .then(() => {
-          console.log(createdUser)
+          saveUserInDb(createdUser);
         })
         .catch((serverError) => {
           setErrorState((error) => error.concat(serverError));
@@ -90,14 +97,17 @@ const Register = () => {
   }
 
   const saveUserInDb = (createdUser) => {
+    setIsLoading(true);
     userCollectionRef.child(createdUser.user.uid).set({
       displayName: createdUser.user.displayName,
       photoURL: createdUser.user.photoURL
     })
-    .then(() => {
-      console.log('user saved in db')
+      .then(() => {
+        setIsLoading(false);
+        setIsSuccess(true);
     })
-    .catch(serverError => {
+      .catch(serverError => {
+        setIsLoading(false);
       setErrorState((error) => error.concat(serverError));
     })
   }
@@ -153,13 +163,22 @@ const Register = () => {
             />
           </Segment>
 
-          <Button>Submit</Button>
+          <Button disabled={isLoading} loading={isLoading}>Submit</Button>
         </Form>
 
         {errorState.length > 0 && <Message error>
           <h3>Errors</h3>
           {formatErrors()}
         </Message>}
+
+        {isSuccess && <Message success>
+          <h3>Successfully Registered</h3>
+        </Message>}
+
+        <Message>
+          Aready a User? <Link to="/login">Login</Link>
+        </Message>
+
       </Grid.Column>
     </Grid>
   )
