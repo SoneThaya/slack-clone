@@ -12,9 +12,7 @@ import { setUser } from './store/actioncreator';
 
 import 'semantic-ui-css/semantic.min.css'
 
-const store = createStore(() => {
-
-})
+const store = createStore(combinedReducers);
 
 const Index = (props) => {
 
