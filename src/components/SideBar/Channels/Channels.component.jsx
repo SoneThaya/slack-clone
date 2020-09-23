@@ -7,6 +7,7 @@ import "./Channels.css";
 
 const Channels = (props) => {
   const [modalOpenState, setModalOpenState] = useState(false);
+  const [isLoadingState, setIsLoadingState] = useState(false);
   const [channelAddState, setChannelAddState] = useState({
     name: "",
     description: "",
@@ -22,9 +23,8 @@ const Channels = (props) => {
   };
 
   const onSubmit = () => {
-
     if (!checkIfFormValid()) {
-      return
+      return;
     }
 
     const key = channelsRef.push().key;
@@ -35,25 +35,28 @@ const Channels = (props) => {
       description: channelAddState.description,
       created_by: {
         name: props.user.displayName,
-        avatar: props.user.photoUrl,
+        avatar: props.user.photoURL,
       },
     };
-
+    setIsLoadingState(true)
     channelsRef
       .child(key)
       .update(channel)
       .then(() => {
-        setChannelAddState({ name: '', description: '' })
-        console.log('saved')
+        setChannelAddState({ name: "", description: "" });
+        setIsLoadingState(false)
+        closeModal();
       })
       .catch((error) => {
-        console.log(error)
-      })
+        console.log(error);
+      });
   };
 
   const checkIfFormValid = () => {
-    return channelAddState && channelAddState.name && channelAddState.description
-  }
+    return (
+      channelAddState && channelAddState.name && channelAddState.description
+    );
+  };
 
   const handleInput = (e) => {
     let target = e.target;
@@ -75,7 +78,7 @@ const Channels = (props) => {
           (0)
         </Menu.Item>
         <Menu.Item>
-          <span onClick={openModal}>
+          <span className="clickable" onClick={openModal}>
             <Icon name="add" /> ADD
           </span>
         </Menu.Item>
@@ -104,7 +107,7 @@ const Channels = (props) => {
           </Form>
         </Modal.Content>
         <Modal.Actions>
-          <Button onClick={onSubmit}>
+          <Button loading={isLoadingState} onClick={onSubmit}>
             <Icon name="checkmark" /> Save
           </Button>
           <Button onClick={closeModal}>
